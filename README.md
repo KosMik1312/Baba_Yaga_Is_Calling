@@ -1,137 +1,41 @@
-# Baba Yaga Is Calling - Детское AI приложение 📱
+# Baba Yaga Is Calling 📱
 
-Мобильное приложение для голосовых звонков детей со сказочными персонажами.
+Детское мобильное приложение — голосовые звонки со сказочными персонажами.
 
-## 🎯 Описание
+## Статус
 
-MVP версия приложения с одним персонажем — Бабой Ягой.
+| Версия | Статус | Описание |
+|---|---|---|
+| v0.1.0 MVP | ✅ Архив | Expo + бэкенд пайплайн |
+| v0.2.0 | 🔄 В разработке | React Native CLI + whisper.rn на устройстве |
 
-**Основные возможности:**
-- ✅ Ребёнок видит себя на экране (как в мессенджере)
-- ✅ Баба Яга отвечает голосом в реальном времени
-- ✅ Распознавание речи ребёнка (Whisper)
-- ✅ AI-диалог через GigaChat
-- ✅ Голосовой ответ через Silero TTS
+## Архитектура v0.2.0
 
-## 🛠 Технологический стек
+```
+Устройство (React Native CLI):
+    → Запись речи
+    → whisper.rn — STT на устройстве (~1-2 сек)
+    → текст → бэкенд → GigaChat → текст ответа
+    → Silero TTS — синтез голоса на устройстве
+    → воспроизведение
 
-### Frontend
-- **React Native** + **TypeScript**
-- **Expo SDK 54**
-- **Zustand** — состояние звонка
-- **React Navigation** — навигация
-- **expo-audio** — запись и воспроизведение аудио
-- **expo-camera** — камера
-- **i18next** — интернационализация (RU/EN)
+Бэкенд (FastAPI):
+    → GigaChat API
+    → Авторизация / регистрация
+    → Платежи
+    → Аналитика
+```
 
-### Backend
-- **Python 3.12** + **FastAPI**
-- **WebSocket** — реальное время
-- **uv** — менеджер пакетов и виртуальное окружение
-
-### AI Сервисы
-- **GigaChat API** (Сбер) — генерация диалогов от лица персонажа
-- **Whisper small** (OpenAI, open-source) — распознавание речи, работает локально
-- **Silero TTS v3** (open-source) — синтез голоса, работает локально
-- **ffmpeg** — конвертация аудио форматов (WebM → WAV)
-
-## 📁 Структура проекта
+## Структура проекта
 
 ```
 Baba_Yaga_Is_Calling/
-├── mobile/                   # React Native приложение
-│   ├── src/
-│   │   ├── screens/          # Экраны (Home, Call, Settings)
-│   │   ├── services/         # WebSocket, AudioService
-│   │   ├── store/            # Zustand store
-│   │   ├── hooks/            # useCall
-│   │   └── utils/            # Константы, i18n
-│   ├── assets/
-│   │   └── characters/       # Изображения персонажей
-│   ├── App.tsx
-│   └── package.json
-│
-├── backend/                  # Python сервер
-│   ├── app/
-│   │   ├── api/routes/       # REST + WebSocket endpoints
-│   │   ├── services/         # AI сервисы
-│   │   ├── models/           # Pydantic схемы
-│   │   └── core/             # Конфигурация
-│   ├── requirements.txt
-│   └── main.py
-│
-└── docs/                     # Документация
+├── _archive/       # MVP v0.1.0 на Expo (для справки)
+├── app/            # React Native CLI приложение
+├── backend/        # FastAPI сервер
+└── docs/           # Документация
 ```
 
-## 🚀 Быстрый старт
-
-### Backend
-```bash
-cd backend
-
-# Создать виртуальное окружение (Python 3.12)
-python -m uv venv .venv --python 3.12
-
-# Активировать (Windows)
-.venv\Scripts\Activate.ps1
-
-# Установить зависимости
-python -m uv pip install -r requirements.txt --python .venv\Scripts\python.exe
-
-# Скопировать и заполнить .env
-copy .env.example .env
-
-# Запустить сервер
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### Mobile
-```bash
-cd mobile
-npm install
-npx expo start --clear
-```
-
-## ⚙️ Настройка .env
-
-```env
-GIGACHAT_CLIENT_ID=ваш_client_id
-GIGACHAT_AUTH_KEY=ваш_authorization_key
-GIGACHAT_SCOPE=GIGACHAT_API_PERS
-```
-
-Authorization Key получить на [developers.sber.ru/studio](https://developers.sber.ru/studio).
-
-## 🔄 Поток данных при звонке
-
-```
-Ребёнок говорит
-    → expo-audio записывает аудио (WebM/WAV)
-    → WebSocket отправляет base64 на бэкенд
-    → ffmpeg конвертирует в WAV
-    → Whisper STT распознаёт текст
-    → GigaChat генерирует ответ от лица Бабы Яги
-    → Silero TTS озвучивает ответ
-    → WAV base64 возвращается на фронт
-    → expo-audio воспроизводит голос Бабы Яги
-```
-
-## 💰 Монетизация (план)
-
-- 2 бесплатных персонажа
-- Покупка дополнительных персонажей
-- Подписка на премиум контент
-
-## 🌍 Мультиязычность
-
-- 🇷🇺 Русский (реализован)
-- 🇬🇧 English (планируется)
-
-## 📄 Лицензия
+## Лицензия
 
 MIT License
-
----
-
-**Статус:** MVP работает  
-**Версия:** 0.1.0-mvp

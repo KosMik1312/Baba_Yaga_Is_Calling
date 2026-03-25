@@ -2,17 +2,14 @@
 
 ## 📋 Предварительные требования
 
-### Для мобильной разработки:
-- Node.js 18+ (https://nodejs.org/)
-- npm или yarn
-- Expo CLI (`npm install -g expo-cli`)
-- Эмулятор Android/iOS или физическое устройство
-- Expo Go приложение (для тестирования на телефоне)
+### Общее:
+- Node.js 18+ — https://nodejs.org/
+- Python 3.12 — https://www.python.org/
+- uv (менеджер пакетов Python) — устанавливается через pip
 
-### Для backend разработки:
-- Python 3.10+ (https://www.python.org/)
-- pip (менеджер пакетов Python)
-- venv (виртуальное окружение)
+### Для тестирования на телефоне:
+- Expo Go приложение (Android/iOS)
+- Телефон и компьютер в одной Wi-Fi сети
 
 ---
 
@@ -21,182 +18,135 @@
 ### Шаг 1: Клонирование репозитория
 
 ```bash
-cd c:\Users\KosMik\Projects\At_Work_Projects\Baba_Yaga_Is_Calling
+git clone https://github.com/KosMik1312/Baba_Yaga_Is_Calling.git
+cd Baba_Yaga_Is_Calling
 ```
 
-### Шаг 2: Настройка Mobile приложения
-
-```bash
-cd mobile
-
-# Установка зависимостей
-npm install
-
-# Запуск Expo
-npx expo start
-```
-
-После запуска:
-- Отсканируйте QR код через Expo Go (на телефоне)
-- Или нажмите `a` для запуска на Android эмуляторе
-- Или нажмите `i` для запуска на iOS симуляторе
-
-### Шаг 3: Настройка Backend сервера
+### Шаг 2: Настройка Backend
 
 ```bash
 cd backend
 
-# Создание виртуального окружения
-python -m venv venv
+# Установить uv (если не установлен)
+pip install uv
 
-# Активация виртуального окружения (Windows)
-venv\Scripts\activate
+# Установить Python 3.12 через uv
+python -m uv python install 3.12
 
-# (Mac/Linux)
-source venv/bin/activate
+# Создать виртуальное окружение
+python -m uv venv .venv --python 3.12
 
-# Установка зависимостей
-pip install -r requirements.txt
+# Активировать (Windows PowerShell)
+.venv\Scripts\Activate.ps1
 
-# Копирование .env.example в .env
+# Активировать (Mac/Linux)
+source .venv/bin/activate
+
+# Установить зависимости
+python -m uv pip install -r requirements.txt --python .venv\Scripts\python.exe
+
+# Скопировать .env
 copy .env.example .env   # Windows
-# или
 cp .env.example .env     # Mac/Linux
 ```
 
-### Шаг 4: Получение API ключей
+### Шаг 3: Получение GigaChat API ключей
 
-#### GigaChat API:
-1. Зарегистрируйтесь на https://developers.sber.ru/
-2. Создайте новый проект
-3. Получите API ключ для GigaChat
-4. Вставьте ключ в файл `backend/.env`:
-   ```
-   GIGACHAT_API_KEY=ваш_ключ
-   ```
+1. Зарегистрируйтесь на https://developers.sber.ru/studio
+2. Создайте проект с GigaChat API
+3. В разделе "Настройка API" скопируйте:
+   - **Client ID**
+   - **Authorization Key** (кнопка "Получить новый ключ")
+4. Вставьте в `backend/.env`:
+```env
+GIGACHAT_CLIENT_ID=ваш_client_id
+GIGACHAT_AUTH_KEY=ваш_authorization_key
+GIGACHAT_SCOPE=GIGACHAT_API_PERS
+```
 
-### Шаг 5: Запуск Backend сервера
+### Шаг 4: Запуск Backend
 
 ```bash
 cd backend
-
-# Активация venv (если не активировано)
-venv\Scripts\activate
-
-# Запуск сервера
+.venv\Scripts\Activate.ps1
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Сервер запустится на http://localhost:8000
+Сервер запустится на http://localhost:8000  
+Swagger документация: http://localhost:8000/docs
 
-Документация API будет доступна на: http://localhost:8000/docs
+> При первом запуске автоматически скачаются модели:
+> - Whisper small (~244 MB) — распознавание речи
+> - Silero TTS v3 (~100 MB) — синтез голоса
 
----
+### Шаг 5: Настройка Mobile
 
-## 🧪 Тестирование
+Узнайте локальный IP вашего компьютера:
+```bash
+# Windows
+ipconfig | findstr "IPv4"
 
-### Проверка Backend
-
-Откройте браузер и перейдите на:
-- http://localhost:8000/health - проверка статуса
-- http://localhost:8000/api/v1/characters/ - список персонажей
-- http://localhost:8000/docs - Swagger документация
-
-### Проверка Mobile
-
-После запуска Expo:
-1. Откройте Expo Go на телефоне
-2. Отсканируйте QR код из терминала
-3. Должен открыться главный экран со списком персонажей
-
----
-
-## 📁 Структура проекта
-
+# Mac/Linux
+ifconfig | grep "inet "
 ```
-Baba_Yaga_Is_Calling/
-├── mobile/              # React Native приложение
-│   ├── src/
-│   │   ├── screens/    # Экраны приложения
-│   │   ├── components/ # Компоненты
-│   │   ├── services/   # API сервисы
-│   │   └── utils/      # Утилиты
-│   ├── assets/         # Ресурсы (картинки, звуки)
-│   └── package.json
-│
-├── backend/            # Python сервер
-│   ├── app/
-│   │   ├── api/       # REST API и WebSocket
-│   │   ├── services/  # AI сервисы
-│   │   ├── models/    # Модели данных
-│   │   └── core/      # Конфигурация
-│   └── requirements.txt
-│
-└── docs/              # Документация
-    ├── architecture.md
-    └── development_log.md
+
+Откройте `mobile/src/utils/constants.ts` и замените IP:
+```ts
+export const WS_CONFIG = {
+  url: __DEV__
+    ? 'ws://ВАШ_IP:8000/api/v1'  // например ws://192.168.0.102:8000/api/v1
+    : 'wss://...',
+};
+```
+
+### Шаг 6: Запуск Mobile
+
+```bash
+cd mobile
+npm install
+npx expo start --clear
+```
+
+- Отсканируйте QR код через Expo Go на телефоне
+- Или нажмите `w` для запуска в браузере
+
+---
+
+## 🧪 Проверка работы
+
+### Backend:
+- http://localhost:8000/health — статус сервера
+- http://localhost:8000/api/v1/characters/ — список персонажей
+- http://localhost:8000/docs — Swagger UI
+
+### Полный пайплайн (тест без фронта):
+```bash
+cd backend
+.venv\Scripts\python.exe test_pipeline.py
 ```
 
 ---
 
 ## 🔧 Решение проблем
 
-### Ошибка: "Cannot find module 'react-native'"
-
-```bash
-cd mobile
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### Ошибка: "ModuleNotFoundError: No module named 'fastapi'"
-
-```bash
-cd backend
-venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### Ошибка: "Expo requires Node.js 18+"
-
-Обновите Node.js до последней версии с https://nodejs.org/
-
-### Ошибка: "Port 8000 is already in use"
-
+### "Port 8000 is already in use"
 ```bash
 # Windows
 netstat -ano | findstr :8000
 taskkill /PID <PID> /F
-
-# Mac/Linux
-lsof -ti:8000 | xargs kill -9
 ```
 
----
+### "Cannot find module"
+```bash
+cd mobile
+rm -rf node_modules
+npm install
+npx expo start --clear
+```
 
-## 📝 Следующие шаги
-
-После успешного запуска:
-
-1. ✅ Протестировать отображение главного экрана
-2. ✅ Проверить переход на экран звонка
-3. ✅ Настроить GigaChat API ключи
-4. ✅ Интегрировать Silero STT/TTS
-5. ✅ Протестировать WebSocket соединение
-6. ✅ Добавить изображение Бабы Яги в `mobile/assets/characters/`
+### Модели не скачиваются
+Проверьте интернет-соединение. Модели кэшируются в `~/.cache/torch/hub/` и скачиваются только один раз.
 
 ---
 
-## 🆘 Помощь
-
-Если возникли проблемы:
-
-1. Проверьте логи в консоли
-2. Убедитесь, что все зависимости установлены
-3. Проверьте, что порты не заняты
-4. Убедитесь, что .env файл настроен правильно
-
----
-
-**Версия:** 0.1.0-mvp  
-**Дата обновления:** 25 марта 2026
+**Версия:** 0.1.0-mvp

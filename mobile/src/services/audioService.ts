@@ -27,24 +27,14 @@ class AudioService {
   }
 
   async uriToBase64(uri: string): Promise<string> {
-    if (Platform.OS === 'web') {
-      // На вебе читаем через fetch → blob → base64
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const result = reader.result as string;
-          // Убираем префикс "data:...;base64,"
-          resolve(result.split(',')[1]);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    }
-    // На мобильных используем expo-file-system
-    return await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
+    // fetch + FileReader работает везде — и на вебе и на мобильных
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
     });
   }
 
@@ -52,7 +42,6 @@ class AudioService {
     if (!this.player) return;
 
     if (Platform.OS === 'web') {
-      // На вебе используем Web Audio API напрямую
       const binary = atob(base64);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) {
@@ -65,8 +54,8 @@ class AudioService {
       return;
     }
 
-    // На мобильных пишем файл через expo-file-system
-    const uri = FileSystem.cacheDirectory + 'response.wav';
+    // На мобильных — пишем файл через expo-file-system
+    const uri = FileSystem.cacheDirectory + 'baba_yaga_response.wav';
     await FileSystem.writeAsStringAsync(uri, base64, {
       encoding: FileSystem.EncodingType.Base64,
     });

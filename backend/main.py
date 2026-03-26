@@ -36,8 +36,18 @@ def get_model() -> WhisperModel:
     return whisper_model
 
 def to_wav_16k_mono(audio_bytes: bytes) -> bytes:
-    if audio_bytes[:4] in (b'RIFF', b'RIFX', b'RF64'):
+    # Проверяем что это валидный WAV с правильным форматом
+    is_valid_wav = (
+        len(audio_bytes) > 44 and
+        audio_bytes[:4] in (b'RIFF', b'RIFX', b'RF64') and
+        audio_bytes[8:12] == b'WAVE'
+    )
+    
+    if is_valid_wav:
+        logger.info("Файл уже в формате WAV, пропускаем конвертацию")
         return audio_bytes
+    
+    logger.info("Конвертируем аудио в WAV 16kHz mono через ffmpeg")
     ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
     process = subprocess.run(
         [ffmpeg_path, '-i', 'pipe:0', '-ar', '16000', '-ac', '1', '-f', 'wav', 'pipe:1'],
@@ -45,7 +55,9 @@ def to_wav_16k_mono(audio_bytes: bytes) -> bytes:
         capture_output=True,
     )
     if process.returncode != 0:
+        logger.error(f"ffmpeg stderr: {process.stderr.decode()}")
         raise RuntimeError(f"ffmpeg error: {process.stderr.decode()}")
+    logger.info(f"Конвертация завершена, размер: {len(process.stdout)} байт")
     return process.stdout
 
 @app.get("/health")

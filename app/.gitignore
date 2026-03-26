@@ -79,5 +79,4 @@ android/app/src/main/assets/*.bin
 
 # Secrets (содержат API ключи и IP адреса)
 src/services/gigachat.ts
-src/services/yandexSTT.ts
 src/services/backendSTT.ts

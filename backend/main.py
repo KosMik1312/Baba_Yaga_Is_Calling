@@ -22,12 +22,17 @@ app.add_middleware(
 # Загружаем модель один раз при старте
 whisper_model: WhisperModel | None = None
 
+@app.on_event("startup")
+async def startup_event():
+    global whisper_model
+    logger.info("Загружаем Whisper small при старте...")
+    whisper_model = WhisperModel("small", device="cpu", compute_type="int8")
+    logger.info("Whisper загружен и готов")
+
 def get_model() -> WhisperModel:
     global whisper_model
     if whisper_model is None:
-        logger.info("Загружаем Whisper small...")
-        whisper_model = WhisperModel("small", device="cpu", compute_type="int8")
-        logger.info("Whisper загружен")
+        raise RuntimeError("Модель не загружена")
     return whisper_model
 
 def to_wav_16k_mono(audio_bytes: bytes) -> bytes:
@@ -52,6 +57,12 @@ async def speech_to_text(audio: UploadFile = File(...)):
     try:
         audio_bytes = await audio.read()
         logger.info(f"STT запрос: {len(audio_bytes)} байт, формат: {audio.content_type}")
+        
+        # Проверяем WAV заголовок
+        if len(audio_bytes) < 44:
+            raise HTTPException(status_code=400, detail="Файл слишком маленький")
+        
+        logger.info(f"WAV header: {audio_bytes[:12].hex()}")
 
         audio_bytes = to_wav_16k_mono(audio_bytes)
 
